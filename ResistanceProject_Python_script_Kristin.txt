@@ -1,0 +1,88 @@
+# This is an assignment for the Programming with Python module
+# Programmer: Kristin KORNERUP
+# Date: 31/12/2024
+
+# Load the necessary libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# --------------------------------------------------
+# Main Program
+# --------------------------------------------------
+
+# Path to the CSV file
+file_path = "ECDC_surveillance_data_Antimicrobial_resistance_Klebsiella pneumoniae_carbapenem_Bulgaria.csv"
+data = pd.read_csv(file_path)
+
+# Load the CSV file
+df = pd.read_csv(file_path)
+print("CSV file loaded successfully.")
+
+# Ensure data is sorted by year
+data = data.sort_values(by='Time')
+
+# Initialize an array to store the years where the percentage exceeds the threshold
+highlight_years = []
+
+# Define the threshold
+threshold = 30
+
+# Loop through the data
+for index, row in df.iterrows(): 
+    year = row['Time']
+    value = row['NumValue']
+    
+    # Decision: Check if the value exceeds the threshold
+    if value > threshold:
+        highlight_years.append(year)
+
+# Create a line graph
+plt.figure(figsize=(10, 6))
+plt.plot(df['Time'], df['NumValue'], marker='o', linestyle='-')
+print("Line graph created.")
+
+# Highlight the points that exceed the threshold with a vertical segmented red line
+for year in highlight_years:
+    plt.axvline(x=year, color='r', linestyle='--', alpha=0.7)
+    
+# Calculate the year-to-year change
+data['YearlyChange'] = data['NumValue'].diff()
+
+# Find the year with the highest change
+data['AbsoluteChange'] = data['YearlyChange'].abs()
+max_change_row = data.loc[data['AbsoluteChange'].idxmax()]
+
+# Print results of year with highest change
+def print_results():
+    print("Yearly Percentage Change:")
+    print(data[['Time', 'NumValue', 'YearlyChange']])
+    print("\nYear with the highest percentage change:")
+    print(f"Year: {int(max_change_row['Time'])}")
+    print(f"Change: {max_change_row['YearlyChange']:.2f}")
+
+if __name__ == "__main__":
+    print_results()
+
+# Add ticks if NumValue exceeds 30% with IF-THEN-ELSE construct: IF value exceeds 30% THEN mark the point with a yellow "x"; ELSE mark the point with a blue "o"
+for index, row in df.iterrows():
+    if row['NumValue'] > 30:
+        plt.plot(row['Time'], row['NumValue'], marker='x', color='y')
+    else:
+        plt.plot(row['Time'], row['NumValue'], marker='o', color='b')
+
+# Set the title and labels
+plt.title('Percentage K. pneumoniae carbapenem resistant isolates over time in Bulgaria')
+plt.xlabel('Year')
+plt.ylabel('Percentage Resistant Isolates')
+plt.xticks(df['Time'], rotation=45)
+plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+# Customize and show the plot in Visual Stusio interactive window
+plt.grid(True)
+plt.tight_layout()
+
+# Save the plot
+plt.savefig("resistance_trends.png")
+plt.show()
+
+# END 
